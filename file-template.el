@@ -26,7 +26,6 @@
 
 (require 'cl-lib)
 
-(defvar file-template-dir "~/.emacs.d/file-templates")
 (cl-defstruct ft:template node)
 
 (cl-defstruct ft:directory-node get-name children)
@@ -34,8 +33,6 @@
 (cl-defstruct ft:file-node get-name content)
 
 (cl-defstruct ft:snippet-content name mode)
-
-(defvar ft:templates-table (make-hash-table))
 
 (defun ft:register-template (sym template)
   (puthash sym template ft:templates-table))
