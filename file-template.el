@@ -26,7 +26,7 @@
 
 (require 'cl-lib)
 
-(cl-defstruct ft:template node)
+(cl-defstruct ft:template name node)
 
 (cl-defstruct ft:directory-node get-name children)
 
@@ -41,7 +41,7 @@
   (let ((node (ft:template-node template)))
     (cond ((ft:directory-node-p node)
            (ft:expand-directory-node instance-name default-directory node))
-          (t (error "unexpected template node")))))
+          (t (error "unexpected template node %s" node)))))
 
 (defun ft:expand-directory-node (instance-name parent-directory node)
   (let* ((directory-name (funcall (ft:directory-node-get-name node) instance-name))
@@ -65,11 +65,13 @@
                (yas-expand-snippet snippet)
                (save-buffer)))))))
 
+
 (defun ft:make-template-expander (template)
-  (defun ft:expand-given-template (instance-name)
-    (interactive "sInstance-name: ")
-    (when (not (string= instance-name ""))
-      (ft:expand-template instance-name template))))
+  (lambda ()
+    (interactive)
+    (let ((instance-name (read-string (format "Instance name for %s: " (ft:template-name template)))))
+      (when (not (string= instance-name ""))
+        (ft:expand-template instance-name template)))))
 
 (provide 'file-template)
 ;;; file-template.el ends here
