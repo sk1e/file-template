@@ -26,7 +26,9 @@
 
 (require 'cl-lib)
 
-(cl-defstruct ft:template name node)
+(cl-defstruct ft:abstract-template name node)
+(cl-defstruct (ft:parameterized-template (:include ft:abstract-template)))
+(cl-defstruct (ft:self-sufficient-template (:include ft:abstract-template)))
 
 (cl-defstruct ft:directory-node get-name children)
 
@@ -38,9 +40,11 @@
   (puthash sym template ft:templates-table))
 
 (defun ft:expand-template (instance-name template)
-  (let ((node (ft:template-node template)))
+  (let ((node (ft:abstract-template-node template)))
     (cond ((ft:directory-node-p node)
            (ft:expand-directory-node instance-name default-directory node))
+          ((ft:file-node-p node)
+           (ft:expand-file-node instance-name default-directory node))
           (t (error "unexpected template node %s" node)))))
 
 (defun ft:expand-directory-node (instance-name parent-directory node)
@@ -69,9 +73,14 @@
 (defun ft:make-template-expander (template)
   (lambda ()
     (interactive)
-    (let ((instance-name (read-string (format "Instance name for %s: " (ft:template-name template)))))
-      (when (not (string= instance-name ""))
-        (ft:expand-template instance-name template)))))
+    (cond
+     ((ft:parameterized-template-p template)
+      (let ((instance-name (read-string (format "Instance name for %s: " (ft:abstract-template-name template)))))
+        (when (not (string= instance-name ""))
+          (ft:expand-template instance-name template)))
+      )
+     ((ft:self-sufficient-template-p template)
+      (ft:expand-template "empty-name" template)))))
 
 (provide 'file-template)
 ;;; file-template.el ends here
